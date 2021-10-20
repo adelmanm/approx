@@ -48,3 +48,6 @@ The module [approx_Conv2d_dist](src/pytorch/approx_mul_pytorch/modules/approx_Co
 ## Results
 
 We apply approximate tensor operations to single and multi-node training of MLP and CNN networks on MNIST, CIFAR-10 and ImageNet datasets. We demonstrate up to 66\% reduction in the amount of computations and communication, and up to 1.37x faster training time while maintaining negligible or no impact on the final test accuracy. More details are described in the paper.
+
+![fig_learning_curves](https://user-images.githubusercontent.com/18640225/138027903-0d56f491-7f97-4a22-800c-91eeb504dcf9.png)
+
