@@ -20,48 +20,31 @@ minimal_k - Minimal number of column-row pairs to keep in the sampling
 
 The approximation algorithms are implemented in [approx_linear_forward_xA_b](src/pytorch/approx_mul_pytorch/functional/approx_linear.py) and [approx_conv2d_func_forward](src/pytorch/approx_mul_pytorch/functional/approx_conv2d.py)
 
-In order to run with sampling in the forward pass and backpropagation through the samplnig 
-
-
-To train the model(s) in the paper, run this command:
-
-```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+In order to run with "forward sampling", i.e sampling in the forward pass and backpropagation through the sampled entries, make sure the ```forward``` function in the layer module has the following enabled and the other calls commented out:
+```
+return approx_conv2d_func_forward(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups, self.sample_ratio, self.minimal_k)
 ```
 
->📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
+"Forwads sampling" performed best in practice and was used to generate most of the results in the paper.
 
-## Evaluation
-
-To evaluate my model on ImageNet, run:
-
-```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+In order to run with "backward sampling", i.e doing a full forward pass and approximating in the backward pass only, make sure the ```forward``` function in the layer module has has the following enabled and the other calls commented out:
+```
+return approx_conv2d_func.apply(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups, self.sample_ratio, self.minimal_k, self.sample_ratio, self.minimal_k, self.sample_ratio, self.minimal_k)
 ```
 
->📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
+For "black box" forward sampling, i.e sampling in the forward pass but propagating gradients for all entries, use the following call in the module ```forward``` function:
+```
+return approx_conv2d_func.apply(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups, self.sample_ratio, self.minimal_k, None, None, None, None)
+```
 
-## Pre-trained Models
+Note that for the convolution backward functions, the [custom cpp extensions](src/pytorch/cpp) need to first be installed using ```python setup.py install```.
 
-You can download pretrained models here:
 
-- [My awesome model](https://drive.google.com/mymodel.pth) trained on ImageNet using parameters x,y,z. 
+Similar options can be used for the approximate linear layer.
 
->📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models.
+The module [approx_Conv2d_dist](src/pytorch/approx_mul_pytorch/modules/approx_Conv2d_dist.py) samples according to the weight norms only. It is used by the multinode experiments in [imagenet_dist](src/pytorch/imagenet_dist) which implement a custom AllReduce scheme that performs reduction only on the sampled gradients. This allows to reduce the gradient communicataion traffic in multi-node training. 
+
 
 ## Results
 
-Our model achieves the following performance on :
-
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
-
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
-
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
-
-
-## Contributing
-
->📋  Pick a licence and describe how to contribute to your code repository. 
+We apply approximate tensor operations to single and multi-node training of MLP and CNN networks on MNIST, CIFAR-10 and ImageNet datasets. We demonstrate up to 66\% reduction in the amount of computations and communication, and up to 1.37x faster training time while maintaining negligible or no impact on the final test accuracy. More details are described in the paper.
