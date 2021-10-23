@@ -1,6 +1,6 @@
 # Faster Neural Network Training with Approximate Tensor Operations
 
-This repository is the official implementation of [Faster Neural Network Training with Approximate Tensor Operations](https://arxiv.org/abs/1805.08079) (NeurIPS 2021). 
+This repository implements [Faster Neural Network Training with Approximate Tensor Operations](https://arxiv.org/abs/1805.08079) (NeurIPS 2021). 
 ![fig_sample_conv](https://user-images.githubusercontent.com/18640225/137972406-9f759402-e8a1-4715-b85a-33258c8dbb9e.png)
 
 ## Requirements
